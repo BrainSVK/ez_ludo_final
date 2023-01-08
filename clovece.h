@@ -15,5 +15,8 @@ int getIdHraca(int index);
 void queue_remove_hrac(int uid);
 void vypisStavHraca(int index,char* vykresli_);
 int nastavPanacika(int index);
+int skontrolujCiVyhral(int index);
+int skusPosunutPanacika(int index_h,int index_p,int hod);
+int masKymPohnut(int index);
 
 #endif //EZ_LUDO_CLOVECE_H

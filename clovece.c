@@ -156,62 +156,133 @@ int skontrolujPostavenie(int index,int hrac) {
     return ciPrazdne;
 }
 
+void vyhodPanacikaDoZacDomceku(int index_h, int index_p) {
+    hraci[index_h]->data[index_p].kdeSom = 1;
+    for (int i = 0; i < DOMCEK; ++i) {
+        if (polickaZacDomTeam[index_h][i] == 'x') {
+            polickaZacDomTeam[index_h][i] = hraci[index_h]->farba;
+            polickaZacDomPanacik[index_h][i] = hraci[index_h]->data[index_p].ktory;
+            hraci[index_h]->data[index_p].posun = 0;
+            hraci[index_h]->data[index_p].NaAkomPolicku = i;
+            break;
+        }
+    }
+}
+
 int nastavPanacika(int index) {
     int ciSaVykonalo = 0;
     for (int i = 0; i < DOMCEK; ++i) {
         if (hraci[index]->data[i].kdeSom == 1) {
+            int policko_ = 0;
             if (hraci[index]->id == 0) {
-                if (skontrolujPostavenie(30,index) == 0) {
-                    hraci[index]->data[i].NaAkomPolicku = 30;
-                    polickaHraciaTeam[hraci[index]->data[i].NaAkomPolicku] = 'R';
-                    ciSaVykonalo = 1;
-                }
+                policko_ = 30;
             } else if (hraci[index]->id == 1) {
-                if (skontrolujPostavenie(0,index) == 0) {
-                    hraci[index]->data[i].NaAkomPolicku = 0;
-                    polickaHraciaTeam[hraci[index]->data[i].NaAkomPolicku] = 'B';
-                    ciSaVykonalo = 1;
-                }
+                policko_ = 0;
             } else if (hraci[index]->id == 2) {
-                if (skontrolujPostavenie(10,index) == 0) {
-                    hraci[index]->data[i].NaAkomPolicku = 10;
-                    polickaHraciaTeam[hraci[index]->data[i].NaAkomPolicku] = 'G';
-                    ciSaVykonalo = 1;
-                }
+                policko_ = 10;
             } else if (hraci[index]->id == 3) {
-                if (skontrolujPostavenie(20,index) == 0) {
-                    hraci[index]->data[i].NaAkomPolicku = 20;
-                    polickaHraciaTeam[hraci[index]->data[i].NaAkomPolicku] = 'Y';
-                    ciSaVykonalo = 1;
+                policko_ = 20;
+            }
+
+            if (polickaHraciaTeam[policko_] != 'x') {
+                for (int i = 0; i < DOMCEK; ++i) {
+                    if (hraci[index]->id != hraci[i]->id ) {
+                        for (int j = 0; j < DOMCEK; ++j) {
+                            if (hraci[i]->data[j].NaAkomPolicku == policko_) {
+                                vyhodPanacikaDoZacDomceku(i,j);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
-            if (ciSaVykonalo == 1) {
+            if (skontrolujPostavenie(policko_,index) == 0) {
+                hraci[index]->data[i].NaAkomPolicku = policko_;
+                polickaHraciaTeam[hraci[index]->data[i].NaAkomPolicku] = hraci[index]->farba;
                 hraci[index]->data[i].kdeSom = 2;
                 polickaZacDomPanacik[index][i] = 'x';
                 polickaZacDomTeam[index][i] = 'x';
                 polickaHraciaPanacik[hraci[index]->data[i].NaAkomPolicku] = hraci[index]->data[i].ktory;
+                ciSaVykonalo = 1;
             }
+
             return ciSaVykonalo;
         }
     }
     return ciSaVykonalo;
 }
 
-void mozemPosunutPanacika(int index_h,int index_p,int hod) {
+int masKymPohnut(int index) {
+    int mas = 0;
+    for (int i = 0; i < DOMCEK; ++i) {
+        if (hraci[index]->data[i].kdeSom == 2) {
+            mas = 1;
+        }
+    }
+    return mas;
+}
+
+int skontrolujCiVyhral(int index) {
+    int vyhral = 0;
+    for (int i = 0; i < DOMCEK; ++i) {
+        if (hraci[index]->data[i].kdeSom == 1 || hraci[index]->data[i].kdeSom == 2) {
+            return vyhral;
+        }
+    }
+    vyhral = 1;
+    return vyhral;
+}
+
+int skusPosunutPanacika(int index_h,int index_p,int hod) {
+    int mozem = 0;
     if (hraci[index_h]->data[index_p].kdeSom == 2) {
         if (hraci[index_h]->data[index_p].posun + hod > 40) {
             for (int i = 0; i < DOMCEK; ++i) {
                 if (polickaDomTeam[index_h][i] == 'y') {
-                    polickaDomTeam[index_h][i] = 'R'
+                    polickaHraciaPanacik[hraci[index_h]->data[index_p].NaAkomPolicku] = 'x';
+                    polickaHraciaTeam[hraci[index_h]->data[index_p].NaAkomPolicku] = 'x';
+                    polickaDomTeam[index_h][i] = hraci[index_h]->farba;
+                    polickaDomPanacik[index_h][i] = hraci[index_h]->data[index_p].ktory;
+                    hraci[index_h]->data[index_p].posun = 40;
+                    hraci[index_h]->data[index_p].kdeSom = 3;
+                    hraci[index_h]->data[index_p].NaAkomPolicku = i;
+
+                    mozem = 1;
+                    return mozem;
                 }
             }
         }
-        for (int j = 0; j < DOMCEK; ++j) {
-            if () {
-
+        int posun = hraci[index_h]->data[index_p].NaAkomPolicku + hod;
+        if (posun > 40) {
+            posun = posun % 40;
+        }
+        for (int i = 0; i < DOMCEK; ++i) {
+            if (posun == hraci[index_h]->data[i].NaAkomPolicku) {
+                return mozem;
             }
         }
+        if (polickaHraciaTeam[posun] != 'x') {
+            for (int i = 0; i < DOMCEK; ++i) {
+                if (hraci[index_h]->id != hraci[i]->id ) {
+                    for (int j = 0; j < DOMCEK; ++j) {
+                        if (hraci[i]->data[j].NaAkomPolicku == posun) {
+                            vyhodPanacikaDoZacDomceku(i,j);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        polickaHraciaPanacik[hraci[index_h]->data[index_p].NaAkomPolicku] = 'x';
+        polickaHraciaTeam[hraci[index_h]->data[index_p].NaAkomPolicku] = 'x';
+        hraci[index_h]->data[index_p].NaAkomPolicku = posun;
+        hraci[index_h]->data[index_p].posun += hod;
+        polickaHraciaTeam[posun] = hraci[index_h]->farba;
+        polickaHraciaPanacik[posun] = hraci[index_h]->data[index_p].ktory;
+        mozem = 1;
+        return mozem;
     }
+    return mozem;
 }
 
 int hodKockou() {

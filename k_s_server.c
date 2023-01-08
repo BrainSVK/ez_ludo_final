@@ -167,56 +167,214 @@ void *handle_client(void *arg) {
                         if ((strcmp(prikaz, "-dhodk") == 0) && jeTuEsteNiekto == MAX_CLEINTS) {
                             if (hod == 0) {
                                 hod = hodKockou();
+                                sprintf(buffer,"%s: padlo cislo: %d\n",client->meno, hod);
+                                printf("%s: padlo cislo: %d\n",client->meno, hod);
+                                send_massage_toAll(buffer);
+                                if (masKymPohnut(client->uid) == 0 && hod % 6 != 0) {
+                                    printf("%s: nema sa skym pohnut\n", client->meno);
+                                    char *error = "Nemas sa skym pohnut padlo\n";
+                                    send_massage_toMe(error, client->uid);
+                                    if (getPoradie() == 3) {
+                                        nastavPoradie(0);
+                                    } else {
+                                        nastavPoradie(getPoradie()+1);
+                                    }
+                                    sprintf(buffer,"na rade je: %s\n",clients[getPoradie()]->meno);
+                                    printf("na rade je: %s\n",clients[getPoradie()]->meno);
+                                    send_massage_toAll(buffer);
+                                    hod = 0;
+                                }
                             } else if (hod % 6 == 0) {
                                 hod += hodKockou();
                                 sest++;
+                                sprintf(buffer,"%s: hadzal si znovu a mas: %d z toho %d sestky\n",client->meno, hod,sest);
+                                printf("%s: padlo cislo: %d\n",client->meno, hod);
+                                send_massage_toAll(buffer);
                             } else {
                                 printf("%s: uz si si hodil\n", client->meno);
-                                char *error = "";
-                                sprintf(error, "Uz si si hodil a padlo ti:%d s %d sestkami\n", hod, sest);
-                                send_massage_toMe(error, client->uid);
+                                char* error = "Uz si hodzal!!!\n";
+                                send_massage_toMe(error,client->uid);
                             }
                         }
 
-                        if ((strcmp(prikaz, "-dnast") == 0) && jeTuEsteNiekto == MAX_CLEINTS && sest > 0) {
-                            int skontroluj = nastavPanacika(client->uid);
-                            if (skontroluj == 1) {
-                                sprintf(buffer,"Hrac: %s si postavl noveho panacika\n",clients[getPoradie()]->meno);
-                                printf("Hrac: %s si postavl noveho panacika\n",clients[getPoradie()]->meno);
-                                send_massage_toAll(buffer);
-                                sest--;
-                                hod -= 6;
+                        if ((strcmp(prikaz, "-dnast") == 0) && jeTuEsteNiekto == MAX_CLEINTS) {
+                            if (sest > 0) {
+                                int skontroluj = nastavPanacika(client->uid);
+                                if (skontroluj == 1 && sest > 0) {
+                                    vykresli(prikaz);
+                                    printf("**%s", prikaz);
+                                    send_massage_toAll(prikaz);
+
+                                    sprintf(buffer, "Hrac: %s si postavl noveho panacika\n",
+                                            clients[getPoradie()]->meno);
+                                    printf("Hrac: %s si postavl noveho panacika\n", clients[getPoradie()]->meno);
+                                    send_massage_toAll(buffer);
+                                    sest = sest - 1;
+                                    printf("%s: spotreboval si 6 mas ich %d", clients[getPoradie()]->meno, sest);
+                                    hod -= 6;
+                                    printf("Hrac: %s zostalo %d na pohnutie\n", clients[getPoradie()]->meno, hod);
+                                    sprintf(buffer, "Hrac: %s zostava na pohnutie %d\n", clients[getPoradie()]->meno,hod);
+                                    send_massage_toMe(buffer, client[getPoradie()].uid);
+                                } else {
+                                    printf("Hrac: %s si nemohol postavit noveho panacika\n",clients[getPoradie()]->meno);
+                                    sprintf(buffer,"Nemozes si postavit noveho panacika\n");
+                                    send_massage_toMe(buffer,client->uid);
+                                }
                             } else {
                                 printf("Hrac: %s si nemohol postavit noveho panacika\n",clients[getPoradie()]->meno);
                                 sprintf(buffer,"Nemozes si postavit noveho panacika\n");
                                 send_massage_toMe(buffer,client->uid);
                             }
-                            if (hod == 0) {
-                                if (getPoradie() == 3) {
-                                    nastavPoradie(0);
+                        }
+
+                        if ((strcmp(prikaz, "-dpos1") == 0) && jeTuEsteNiekto == MAX_CLEINTS) {
+                            if (hod > 0) {
+                                int skontroluj = skusPosunutPanacika(client->uid, 0, hod);
+                                if (skontroluj == 1 && hod > 0) {
+                                    vykresli(prikaz);
+                                    printf("**%s", prikaz);
+                                    send_massage_toAll(prikaz);
+
+                                    sprintf(buffer, "Hrac: %s sa posunul panacikom cislo 1\n",
+                                            clients[getPoradie()]->meno);
+                                    printf("Hrac: %s sa posunul panacikom cislo 1\n", clients[getPoradie()]->meno);
+                                    send_massage_toAll(buffer);
+                                    hod = 0;
+                                    if (skontrolujCiVyhral(client->uid) == 1) {
+                                        printf("Hrac: %s vyhral\n", clients[getPoradie()]->meno);
+                                    }
+                                    if (getPoradie() == 3) {
+                                        nastavPoradie(0);
+                                    } else {
+                                        nastavPoradie(getPoradie() + 1);
+                                    }
+                                    sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
+                                    printf("na rade je: %s\n", clients[getPoradie()]->meno);
+                                    send_massage_toAll(buffer);
                                 } else {
-                                    nastavPoradie(getPoradie()+1);
+                                    printf("Hrac: %s sa nemohol posunut panacikom cislo 4\n", clients[getPoradie()]->meno);
+                                    sprintf(buffer, "Nemozes sa posunut panacikom cislo 4\n");
+                                    send_massage_toMe(buffer, client->uid);
                                 }
+                            } else {
+                                printf("Hrac: %s sa nemohol posunut panacikom cislo 1\n",clients[getPoradie()]->meno);
+                                sprintf(buffer,"Nemozes sa posunut panacikom cislo 1\n");
+                                send_massage_toMe(buffer,client->uid);
                             }
                         }
 
-                        if ((strcmp(prikaz, "-dposn") == 0) && jeTuEsteNiekto == MAX_CLEINTS && hod > 0) {
+                        if ((strcmp(prikaz, "-dpos2") == 0) && jeTuEsteNiekto == MAX_CLEINTS) {
+                            if (hod > 0) {
+                                int skontroluj = skusPosunutPanacika(client->uid,1,hod);
+                                if (skontroluj == 1 && hod > 0) {
+                                    vykresli(prikaz);
+                                    printf("**%s", prikaz);
+                                    send_massage_toAll(prikaz);
 
-                            hod = 0;
+                                    sprintf(buffer, "Hrac: %s sa posunul panacikom cislo 2\n",
+                                            clients[getPoradie()]->meno);
+                                    printf("Hrac: %s sa posunul panacikom cislo 2\n", clients[getPoradie()]->meno);
+                                    send_massage_toAll(buffer);
+                                    hod = 0;
+                                    if (skontrolujCiVyhral(client->uid) == 1) {
+                                        printf("Hrac: %s vyhral\n", clients[getPoradie()]->meno);
+                                    }
+                                    if (getPoradie() == 3) {
+                                        nastavPoradie(0);
+                                    } else {
+                                        nastavPoradie(getPoradie() + 1);
+                                    }
+                                    sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
+                                    printf("na rade je: %s\n", clients[getPoradie()]->meno);
+                                    send_massage_toAll(buffer);
+                                } else {
+                                    printf("Hrac: %s sa nemohol posunut panacikom cislo 4\n", clients[getPoradie()]->meno);
+                                    sprintf(buffer, "Nemozes sa posunut panacikom cislo 4\n");
+                                    send_massage_toMe(buffer, client->uid);
+                                }
+                            } else {
+                                printf("Hrac: %s sa nemohol posunut panacikom cislo 2\n",clients[getPoradie()]->meno);
+                                sprintf(buffer,"Nemozes sa posunut panacikom cislo 2\n");
+                                send_massage_toMe(buffer,client->uid);
+                            }
+                        }
+
+                        if ((strcmp(prikaz, "-dpos3") == 0) && jeTuEsteNiekto == MAX_CLEINTS) {
+                            if (hod > 0) {
+                                int skontroluj = skusPosunutPanacika(client->uid,2,hod);
+                                if (skontroluj == 1 && hod > 0) {
+                                    vykresli(prikaz);
+                                    printf("**%s", prikaz);
+                                    send_massage_toAll(prikaz);
+
+                                    sprintf(buffer, "Hrac: %s sa posunul panacikom cislo 3\n",
+                                            clients[getPoradie()]->meno);
+                                    printf("Hrac: %s sa posunul panacikom cislo 3\n", clients[getPoradie()]->meno);
+                                    send_massage_toAll(buffer);
+                                    hod = 0;
+                                    if (skontrolujCiVyhral(client->uid) == 1) {
+                                        printf("Hrac: %s vyhral\n", clients[getPoradie()]->meno);
+                                    }
+                                    if (getPoradie() == 3) {
+                                        nastavPoradie(0);
+                                    } else {
+                                        nastavPoradie(getPoradie() + 1);
+                                    }
+                                    sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
+                                    printf("na rade je: %s\n", clients[getPoradie()]->meno);
+                                    send_massage_toAll(buffer);
+                                } else {
+                                    printf("Hrac: %s sa nemohol posunut panacikom cislo 4\n", clients[getPoradie()]->meno);
+                                    sprintf(buffer, "Nemozes sa posunut panacikom cislo 4\n");
+                                    send_massage_toMe(buffer, client->uid);
+                                }
+                            } else {
+                                printf("Hrac: %s sa nemohol posunut panacikom cislo 3\n",clients[getPoradie()]->meno);
+                                sprintf(buffer,"Nemozes sa posunut panacikom cislo 3\n");
+                                send_massage_toMe(buffer,client->uid);
+                            }
+                        }
+
+                        if ((strcmp(prikaz, "-dpos4") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
+                            if (hod > 0) {
+                                int skontroluj = skusPosunutPanacika(client->uid, 3, hod);
+                                if (skontroluj == 1) {
+                                    vykresli(prikaz);
+                                    printf("**%s", prikaz);
+                                    send_massage_toAll(prikaz);
+
+                                    sprintf(buffer, "Hrac: %s sa posunul panacikom cislo 4\n",
+                                            clients[getPoradie()]->meno);
+                                    printf("Hrac: %s sa posunul panacikom cislo 4\n", clients[getPoradie()]->meno);
+                                    send_massage_toAll(buffer);
+                                    hod = 0;
+                                    if (skontrolujCiVyhral(client->uid) == 1) {
+                                        printf("Hrac: %s vyhral\n", clients[getPoradie()]->meno);
+                                    }
+                                    if (getPoradie() == 3) {
+                                        nastavPoradie(0);
+                                    } else {
+                                        nastavPoradie(getPoradie() + 1);
+                                    }
+                                    sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
+                                    printf("na rade je: %s\n", clients[getPoradie()]->meno);
+                                    send_massage_toAll(buffer);
+                                } else {
+                                    printf("Hrac: %s sa nemohol posunut panacikom cislo 4\n", clients[getPoradie()]->meno);
+                                    sprintf(buffer, "Nemozes sa posunut panacikom cislo 4\n");
+                                    send_massage_toMe(buffer, client->uid);
+                                }
+                            } else {
+                                printf("Hrac: %s sa nemohol posunut panacikom cislo 4\n", clients[getPoradie()]->meno);
+                                sprintf(buffer, "Nemozes sa posunut panacikom cislo 4\n");
+                                send_massage_toMe(buffer, client->uid);
+                            }
                         }
 
                         if ((strcmp(prikaz, "-dvykr") == 0) && jeTuEsteNiekto == MAX_CLEINTS) {
                             vykresli(prikaz);
                             printf("**%s",prikaz);
                             send_massage_toAll(prikaz);
-                            if (getPoradie() == 3) {
-                                nastavPoradie(0);
-                            } else {
-                                nastavPoradie(getPoradie()+1);
-                            }
-                            sprintf(buffer,"na rade je: %s\n",clients[getPoradie()]->meno);
-                            printf("na rade je: %s\n",clients[getPoradie()]->meno);
-                            send_massage_toAll(buffer);
                         }
                         if ((strcmp(prikaz, "-duidh") == 0) && jeTuEsteNiekto == MAX_CLEINTS) {
                             printf("%d\n",getIdHraca(client->uid));
