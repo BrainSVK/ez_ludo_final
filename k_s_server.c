@@ -8,7 +8,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include "clovece.h"
-#include <signal.h>
+//#include <signal.h>
 
 #define BUFFER_SZ 2048
 #define NAME_LEN  32
@@ -33,20 +33,6 @@ client_t  *clients[MAX_CLEINTS];
 
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void str_overwrite_stdout() {
-    printf("\r%s", "> ");
-    fflush(stdout);
-}
-
-void str_trim_lf(char* arr, int lenght) {
-    for (int i = 0; i < lenght; ++i) {
-        if (arr[i] == '\n') {
-            arr[i] = '\0';
-            break;
-        }
-    }
-}
-
 void queue_add(client_t *cl) {
     pthread_mutex_lock(&clients_mutex);
     for (int i = 0; i < MAX_CLEINTS; ++i) {
@@ -58,12 +44,12 @@ void queue_add(client_t *cl) {
     pthread_mutex_unlock(&clients_mutex);
 }
 
-void queue_remove(int uid) {
+void queue_remove(int _uid) {
     pthread_mutex_lock(&clients_mutex);
 
     for (int i = 0; i < MAX_CLEINTS; ++i) {
         if (clients[i]) {
-            if (clients[i]->uid == uid) {
+            if (clients[i]->uid == _uid) {
                 clients[i] = NULL;
                 break;
             }
@@ -72,11 +58,11 @@ void queue_remove(int uid) {
     pthread_mutex_unlock(&clients_mutex);
 }
 
-void send_massage(char *s, int uid) {
+void send_massage(char *s, int _uid) {
     pthread_mutex_lock(&clients_mutex);
     for (int i = 0; i < MAX_CLEINTS; ++i) {
         if (clients[i]) {
-            if (clients[i]->uid != uid) {
+            if (clients[i]->uid != _uid) {
                 if (write(clients[i]->clientSock, s, strlen(s)) < 0) {
                     printf("ERROR: write sa pokazil\n");
                     break;
@@ -87,11 +73,11 @@ void send_massage(char *s, int uid) {
     pthread_mutex_unlock(&clients_mutex);
 }
 
-void send_massage_toMe(char *s, int uid) {
+void send_massage_toMe(char *s, int _uid) {
     pthread_mutex_lock(&clients_mutex);
     for (int i = 0; i < MAX_CLEINTS; ++i) {
         if (clients[i]) {
-            if (clients[i]->uid == uid) {
+            if (clients[i]->uid == _uid) {
                 if (write(clients[i]->clientSock, s, strlen(s)) < 0) {
                     printf("ERROR: write sa pokazil\n");
                     break;
@@ -113,20 +99,6 @@ void send_massage_toAll(char *s) {
         }
     }
     pthread_mutex_unlock(&clients_mutex);
-}
-
-char* spracujData(char *data) {
-    char *akt = data;
-    while (*akt != '\0') {
-        if (islower(*akt)) {
-            *akt = toupper(*akt);
-        }
-        else if (isupper(*akt)) {
-            *akt = tolower(*akt);
-        }
-		akt++;		
-    }
-    return data;
 }
 
 void *handle_client(void *arg) {
@@ -754,10 +726,6 @@ void *handle_client(void *arg) {
                             hod += 40;
                         }
 
-                        if ((strcmp(prikaz, "-dhode") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
-                            hod += 39;
-                        }
-
                         if ((strcmp(prikaz, "-dvykr") == 0) && jeTuEsteNiekto == MAX_CLEINTS) {
                             vykresli(prikaz);
                             printf("**%s",prikaz);
@@ -838,7 +806,6 @@ int main(int argc, char** argv) {
 
     //server caka na pripojenie klienta <sys/socket.h>
     int koniec = 0;
-    nastavNaX();
     int clientSocket = 0;
     int pocetKlientov = 1;
     char message[BUFFER_SZ] = {};
@@ -883,67 +850,3 @@ int main(int argc, char** argv) {
     return (EXIT_SUCCESS);
 
 }
-//    printf("Klient sa pripojil na server.\n");
-//    char buffer[BUFFER_LENGTH + 1];
-//    buffer[BUFFER_LENGTH] = '\0';
-//    int koniec = 0;
-//    read(clientSocket[0], buffer, BUFFER_LENGTH);
-//    char menoHraca[BUFFER_LENGTH + 1];
-//    strcpy(menoHraca,buffer);
-//    read(clientSocket[1], buffer, BUFFER_LENGTH);
-//    char menoHraca1[BUFFER_LENGTH + 1];
-//    strcpy(menoHraca1,buffer);
-//    char * menoHracov[2];
-//    int i = 0;
-//    menoHracov[0] = menoHraca;
-//    menoHracov[1] = menoHraca1;
-//    while (!koniec) {
-//        stdin->_lock;
-//        //citanie dat zo socketu <unistd.h>
-//        printf("na rade je %s\n", menoHracov[i]);
-//        write(clientSocket[0], menoHracov[i], BUFFER_LENGTH);
-//        write(clientSocket[1], menoHracov[i], BUFFER_LENGTH);
-//        read(clientSocket[i], buffer, BUFFER_LENGTH);
-//        if (strcmp(buffer, endMsg) != 0) {
-//            printf("%s poslal nasledujuce data:\n%s\n", menoHracov[i],buffer);
-//            //spracujData(buffer);
-//			//zapis dat do socketu <unistd.h>
-//            for (int j = 0; j < 2; ++j) {
-//                write(clientSocket[j], menoHracov[i], BUFFER_LENGTH);
-//                //write(clientSocket[j], buffer, strlen(menoHracov[i]) + 1);
-//            }
-//
-//            for (int j = 0; j < 2; ++j) {
-//                //write(clientSocket[j], menoHracov[i], strlen(buffer) + 1);
-//                write(clientSocket[j], buffer, BUFFER_LENGTH);
-//            }
-//
-//            for (int j = 0; j < 2; ++j) {
-//                //write(clientSocket[j], menoHracov[i], strlen(buffer) + 1);
-//                write(clientSocket[j], vykresli(),  BUFFER_LENGTH);
-//            }
-//
-//        }
-//        else {
-//            koniec = 1;
-//        }
-//
-//        if (i == 1) {
-//            i = 0;
-//        } else {
-//            i = 1;
-//        }
-//    }
-//    printf("Klient ukoncil komunikaciu.\n");
-//
-//    //uzavretie pasivneho socketu <unistd.h>
-//    close(serverSocket);
-//    for (int i = 0; i < 2; ++i) {
-//        if (clientSocket[i] < 0) {
-//            printError("Chyba - accept.");
-//        }
-//        //uzavretie socketu klienta <unistd.h>
-//        close(clientSocket[i]);
-//    }
-//    return (EXIT_SUCCESS);
-//}

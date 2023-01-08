@@ -20,20 +20,6 @@ volatile sig_atomic_t flag = 0;
 int sock = 0;
 char meno[NAME_LEN];
 
-void str_overwrite_stdout() {
-    printf("\r%s", "> ");
-    fflush(stdout);
-}
-
-void str_trim_lf(char* arr, int lenght) {
-    for (int i = 0; i < lenght; ++i) {
-        if (arr[i] == '\n') {
-            arr[i] = '\0';
-            break;
-        }
-    }
-}
-
 void catch_ctrl_c_and_exit() {
     flag = 1;
 }
@@ -148,42 +134,6 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-
-//    char buffer[BUFFER_LENGTH + 1];
-//    buffer[BUFFER_LENGTH] = '\0';
-//    int koniec = 0;
-//    char menoHraca[BUFFER_LENGTH + 1];
-//    strcpy(menoHraca,argv[3]);
-//    write(sock, menoHraca, strlen(menoHraca) + 1);
-//    while (!koniec) {
-//        read(sock,buffer,BUFFER_LENGTH);
-//        printf("%s je na rade:\n" , buffer);
-//        if (strcmp(buffer, menoHraca) == 0) {
-//            fgets(buffer, BUFFER_LENGTH, stdin);
-//            //fflush(stdin);
-//            char* pos = strchr(buffer, '\n');
-//            if (pos != NULL) {
-//                *pos = '\0';
-//            }
-//            //zapis dat do socketu <unistd.h>
-//            write(sock,buffer,strlen(buffer)+1);
-//            strcpy(buffer,"");
-//        }
-//        if (strcmp(buffer, endMsg) != 0) {
-//            //citanie dat zo socketu <unistd.h>
-//            read(sock, buffer, BUFFER_LENGTH);
-//            printf("%s poslal nasledujuce data:\n", buffer);
-//            read(sock, buffer, BUFFER_LENGTH);
-//            printf("%s\n", buffer);
-//            read(sock, buffer, BUFFER_LENGTH);
-//            char* nieco = buffer;
-//            printf("%s\n", buffer);
-//            //strcpy(buffer,"");
-//        }
-//        else {
-//            koniec = 1;
-//        }
-//    }
     //uzavretie socketu <unistd.h>
     close(sock);
     printf("Spojenie so serverom bolo ukoncene.\n");
