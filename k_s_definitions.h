@@ -12,7 +12,6 @@ extern "C" {
 extern char *endMsg;
 
 void printError(char *str);
-void vykresli(char* vykresli_);
 void nastavPoradie(int _poradie);
 int getPoradie();
 void str_overwrite_stdout();

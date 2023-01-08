@@ -154,7 +154,7 @@ void *handle_client(void *arg) {
                                 }
                                 if (masKymPohnut(client->uid) == 0 && hod % 6 != 0) {
                                     printf("%s: nema sa skym pohnut\n", client->meno);
-                                    char *error = "Nemas sa skym pohnut padlo\n";
+                                    char *error = "Nemas sa skym pohnut\n";
                                     send_massage_toMe(error, client->uid);
 
                                     if (getPoradie() == 3 && clients[0]->vyhral == 0) {
@@ -696,7 +696,7 @@ void *handle_client(void *arg) {
                                 send_massage_toMe(buffer, client->uid);
                             }
                         }
-                        //testovacie prikazy
+                        //testovacie prikazy takzvane CHEATY
                         if ((strcmp(prikaz, "-dhod6") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
                             hod += 6;
                             sest += 1;
@@ -721,7 +721,7 @@ void *handle_client(void *arg) {
                         if ((strcmp(prikaz, "-dhod1") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
                             hod += 1;
                         }
-
+                        //over cheat
                         if ((strcmp(prikaz, "-dvyhr") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
                             hod += 40;
                         }
@@ -762,6 +762,7 @@ void *handle_client(void *arg) {
         }
         bzero(buffer , BUFFER_SZ);
     }
+
     bzero(buffer , BUFFER_SZ);
     close(client->clientSock);
     queue_remove(client->uid);

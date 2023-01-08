@@ -314,3 +314,7 @@ void vykresli(char* vykresli_) {
     );
 }
 
+void ukonci() {
+    free(*hraci);
+}
+
