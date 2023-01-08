@@ -11,4 +11,4 @@ Spustenie klienta:
 	./k_s_client localhost 10000
 	
 Ukoncenie aplikacie:
-	klient zada spravu ":end"
+	klient zada spravu "exit"
