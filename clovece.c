@@ -148,7 +148,7 @@ char getPolickoDomPanacik(int indexI, int indexJ) {
 int skontrolujPostavenie(int index,int hrac) {
     int ciPrazdne = 0;
     for (int i = 0; i < DOMCEK; ++i) {
-        if (hraci[hrac]->data[i].NaAkomPolicku == getPolickoHraciaTeam(index))
+        if (hraci[hrac]->id == getPolickoHraciaTeam(index) && hraci[hrac]->data[i].kdeSom == 2)
         {
             ciPrazdne = 1;
         }
@@ -158,15 +158,10 @@ int skontrolujPostavenie(int index,int hrac) {
 
 void vyhodPanacikaDoZacDomceku(int index_h, int index_p) {
     hraci[index_h]->data[index_p].kdeSom = 1;
-    for (int i = 0; i < DOMCEK; ++i) {
-        if (polickaZacDomTeam[index_h][i] == 'x') {
-            polickaZacDomTeam[index_h][i] = hraci[index_h]->farba;
-            polickaZacDomPanacik[index_h][i] = hraci[index_h]->data[index_p].ktory;
-            hraci[index_h]->data[index_p].posun = 0;
-            hraci[index_h]->data[index_p].NaAkomPolicku = i;
-            break;
-        }
-    }
+    polickaZacDomTeam[index_h][index_p] = hraci[index_h]->farba;
+    polickaZacDomPanacik[index_h][index_p] = hraci[index_h]->data[index_p].ktory;
+    hraci[index_h]->data[index_p].posun = 0;
+    hraci[index_h]->data[index_p].NaAkomPolicku = index_p;
 }
 
 int nastavPanacika(int index) {
@@ -184,11 +179,11 @@ int nastavPanacika(int index) {
                 policko_ = 20;
             }
 
-            if (polickaHraciaTeam[policko_] != 'x') {
+            if (polickaHraciaTeam[policko_] != 'x' && polickaHraciaTeam[policko_] != hraci[index]->farba) {
                 for (int i = 0; i < DOMCEK; ++i) {
                     if (hraci[index]->id != hraci[i]->id ) {
                         for (int j = 0; j < DOMCEK; ++j) {
-                            if (hraci[i]->data[j].NaAkomPolicku == policko_) {
+                            if (hraci[i]->data[j].NaAkomPolicku == policko_ && hraci[i]->data[j].kdeSom == 2) {
                                 vyhodPanacikaDoZacDomceku(i,j);
                                 break;
                             }
@@ -236,7 +231,7 @@ int skontrolujCiVyhral(int index) {
 int skusPosunutPanacika(int index_h,int index_p,int hod) {
     int mozem = 0;
     if (hraci[index_h]->data[index_p].kdeSom == 2) {
-        if (hraci[index_h]->data[index_p].posun + hod > 40) {
+        if (hraci[index_h]->data[index_p].posun + hod >= 40) {
             for (int i = 0; i < DOMCEK; ++i) {
                 if (polickaDomTeam[index_h][i] == 'y') {
                     polickaHraciaPanacik[hraci[index_h]->data[index_p].NaAkomPolicku] = 'x';
@@ -253,15 +248,17 @@ int skusPosunutPanacika(int index_h,int index_p,int hod) {
             }
         }
         int posun = hraci[index_h]->data[index_p].NaAkomPolicku + hod;
-        if (posun > 40) {
+        if (posun >= 40) {
             posun = posun % 40;
         }
         for (int i = 0; i < DOMCEK; ++i) {
             if (posun == hraci[index_h]->data[i].NaAkomPolicku) {
-                return mozem;
+                if (hraci[index_h]->data[i].kdeSom == 2) {
+                    return mozem;
+                }
             }
         }
-        if (polickaHraciaTeam[posun] != 'x') {
+        if (polickaHraciaTeam[posun] != 'x' && polickaHraciaTeam[posun] != hraci[index_h]->farba) {
             for (int i = 0; i < DOMCEK; ++i) {
                 if (hraci[index_h]->id != hraci[i]->id ) {
                     for (int j = 0; j < DOMCEK; ++j) {
@@ -291,17 +288,17 @@ int hodKockou() {
 
 void vykresli(char* vykresli_) {
     sprintf(vykresli_,"**********************************\n"
-                      "**|\033[31m%c%c\033[0m|\033[31m%c%c\033[0m|****|%c%c|%c%c|%c%c|**|\033[34m%c%c\033[0m|\033[34m%c%c\033[0m|****\n"
+                      "**|\033[31m%c%c\033[0m|\033[31m%c%c\033[0m|****|%c%c|%c%c|\033[34m%c%c\033[0m|**|\033[34m%c%c\033[0m|\033[34m%c%c\033[0m|****\n"
                       "**|\033[31m%c%c\033[0m|\033[31m%c%c\033[0m|****|%c%c|\033[34m%c%c\033[0m|%c%c|**|\033[34m%c%c\033[0m|\033[34m%c%c\033[0m|****\n"
                       "*************|%c%c|\033[34m%c%c\033[0m|%c%c|*************\n"
                       "*************|%c%c|\033[34m%c%c\033[0m|%c%c|*************\n"
-                      "*|%c%c|%c%c|%c%c|%c%c|%c%c|\033[34m%c%c\033[0m|%c%c|%c%c|%c%c|%c%c|%c%c|*\n"
+                      "*|\033[31m%c%c\033[0m|%c%c|%c%c|%c%c|%c%c|\033[34m%c%c\033[0m|%c%c|%c%c|%c%c|%c%c|%c%c|*\n"
                       "*|%c%c|\033[31m%c%c\033[0m|\033[31m%c%c\033[0m|\033[31m%c%c\033[0m|\033[31m%c%c\033[0m|**|\033[32m%c%c\033[0m|\033[32m%c%c\033[0m|\033[32m%c%c\033[0m|\033[32m%c%c\033[0m|%c%c|*\n"
-                      "*|%c%c|%c%c|%c%c|%c%c|%c%c|\033[33m%c%c\033[0m|%c%c|%c%c|%c%c|%c%c|%c%c|*\n"
+                      "*|%c%c|%c%c|%c%c|%c%c|%c%c|\033[33m%c%c\033[0m|%c%c|%c%c|%c%c|%c%c|\033[32m%c%c\033[0m|*\n"
                       "*************|%c%c|\033[33m%c%c\033[0m|%c%c|*************\n"
                       "*************|%c%c|\033[33m%c%c\033[0m|%c%c|*************\n"
                       "**|\033[33m%c%c\033[0m|\033[33m%c%c\033[0m|****|%c%c|\033[33m%c%c\033[0m|%c%c|****|\033[32m%c%c\033[0m|\033[32m%c%c\033[0m|**\n"
-                      "**|\033[33m%c%c\033[0m|\033[33m%c%c\033[0m|****|%c%c|%c%c|%c%c|****|\033[32m%c%c\033[0m|\033[32m%c%c\033[0m|**\n"
+                      "**|\033[33m%c%c\033[0m|\033[33m%c%c\033[0m|****|\033[33m%c%c\033[0m|%c%c|%c%c|****|\033[32m%c%c\033[0m|\033[32m%c%c\033[0m|**\n"
                       "************************************\n",
             getPolickoZacDomTeam(0,0), getPolickoZacDomPanacik(0,0),getPolickoZacDomTeam(0,1), getPolickoZacDomPanacik(0,1),getPolickoHraciaTeam(38),getPolickoHraciaPanacik(38),getPolickoHraciaTeam(39), getPolickoHraciaPanacik(39),getPolickoHraciaTeam(0), getPolickoHraciaPanacik(0),getPolickoZacDomTeam(1,0), getPolickoZacDomPanacik(1,0),getPolickoZacDomTeam(1,1), getPolickoZacDomPanacik(1,1),
             getPolickoZacDomTeam(0,2), getPolickoZacDomPanacik(0,2),getPolickoZacDomTeam(0,3), getPolickoZacDomPanacik(0,3),getPolickoHraciaTeam(37),getPolickoHraciaPanacik(37),getPolickoDomTeam(1,0),getPolickoDomPanacik(1,0),getPolickoHraciaTeam(1), getPolickoHraciaPanacik(1),getPolickoZacDomTeam(1,2), getPolickoZacDomPanacik(1,2),getPolickoZacDomTeam(1,3), getPolickoZacDomPanacik(1,3),

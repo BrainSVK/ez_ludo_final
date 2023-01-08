@@ -9,7 +9,7 @@
 
 char *endMsg = ":end";
 char policko[24];
-int podarie = 0;
+int podarie = -1;
 
 void printError(char *str) {
     if (errno != 0) {

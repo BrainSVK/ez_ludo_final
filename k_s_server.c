@@ -26,6 +26,7 @@ typedef struct {
     int clientSock;
     int uid;
     char meno[NAME_LEN];
+    int vyhral;
 } client_t;
 
 client_t  *clients[MAX_CLEINTS];
@@ -158,11 +159,17 @@ void *handle_client(void *arg) {
                 printf("%s\n", buffer);
                 int lenght = strlen(buffer);
                 int pomlcka = lenght - 6;
+                int len = strlen(buffer);
+                char* prikaz = &buffer[len-6];
+                if ((strcmp(prikaz, "vykres") == 0) && jeTuEsteNiekto == MAX_CLEINTS) {
+                    vykresli(prikaz);
+                    send_massage_toMe(prikaz,client->uid);
+                }
                 if (buffer[pomlcka] == '-') {
                     if (client->uid == getPoradie()) {
                         printf("je na rade: %s\n",client->meno);
-                        int len = strlen(buffer);
-                        char* prikaz = &buffer[len-6];
+                        len = strlen(buffer);
+                        prikaz = &buffer[len-6];
 
                         if ((strcmp(prikaz, "-dhodk") == 0) && jeTuEsteNiekto == MAX_CLEINTS) {
                             if (hod == 0) {
@@ -170,23 +177,95 @@ void *handle_client(void *arg) {
                                 sprintf(buffer,"%s: padlo cislo: %d\n",client->meno, hod);
                                 printf("%s: padlo cislo: %d\n",client->meno, hod);
                                 send_massage_toAll(buffer);
+                                if (hod == 6) {
+                                    sest++;
+                                }
                                 if (masKymPohnut(client->uid) == 0 && hod % 6 != 0) {
                                     printf("%s: nema sa skym pohnut\n", client->meno);
                                     char *error = "Nemas sa skym pohnut padlo\n";
                                     send_massage_toMe(error, client->uid);
-                                    if (getPoradie() == 3) {
+
+                                    if (getPoradie() == 3 && clients[0]->vyhral == 0) {
                                         nastavPoradie(0);
+                                    } else if (getPoradie() == 3 && clients[1]->vyhral == 0) {
+                                        nastavPoradie(1);
+                                    } else if (getPoradie() == 3 && clients[2]->vyhral == 0) {
+                                        nastavPoradie(2);
+                                    } else if (getPoradie() == 3 && clients[getPoradie()]->vyhral == 0) {
+                                        nastavPoradie(getPoradie());
                                     } else {
-                                        nastavPoradie(getPoradie()+1);
+                                        if (getPoradie() == 3) {
+                                            printf("Hraci ukoncili hru!!!\n");
+                                            sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                            send_massage_toAll(buffer);
+                                            nastavPoradie(-1);
+                                        } else {
+                                            if (getPoradie() == 0 && clients[getPoradie() +1]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 1);
+                                            } else if (getPoradie() == 0 && clients[getPoradie() + 2]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 2);
+                                            } else if (getPoradie() == 0 && clients[getPoradie() + 3]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 3);
+                                            } else if (getPoradie() == 0 && clients[getPoradie()]->vyhral == 0) {
+                                                nastavPoradie(getPoradie());
+                                            } else {
+                                                if (getPoradie() == 0) {
+                                                    printf("Hraci ukoncili hru!!!\n");
+                                                    sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                    send_massage_toAll(buffer);
+                                                    nastavPoradie(-1);
+                                                } else {
+                                                    if (getPoradie() == 1 && clients[getPoradie() + 1]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie() + 1);
+                                                    } else if (getPoradie() == 1 && clients[getPoradie() + 2]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie() + 2);
+                                                    } else if (getPoradie() == 1 && clients[0]->vyhral == 0) {
+                                                        nastavPoradie(0);
+                                                    } else if (getPoradie() == 1 && clients[getPoradie()]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie());
+                                                    } else {
+                                                        if (getPoradie() == 1) {
+                                                            printf("Hraci ukoncili hru!!!\n");
+                                                            sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                            send_massage_toAll(buffer);
+                                                            nastavPoradie(-1);
+                                                        } else {
+                                                            if (getPoradie() == 2 && clients[getPoradie() + 1]->vyhral == 0) {
+                                                                nastavPoradie(getPoradie() + 1);
+                                                            } else if (getPoradie() == 2 && clients[0]->vyhral == 0) {
+                                                                nastavPoradie(0);
+                                                            } else if (getPoradie() == 2 && clients[1]->vyhral == 0) {
+                                                                nastavPoradie(1);
+                                                            } else if (getPoradie() == 2 && clients[getPoradie()]->vyhral == 0) {
+                                                                nastavPoradie(getPoradie());
+                                                            } else {
+                                                                if (getPoradie() == 2) {
+                                                                    printf("Hraci ukoncili hru!!!\n");
+                                                                    sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                                    send_massage_toAll(buffer);
+                                                                    nastavPoradie(-1);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
-                                    sprintf(buffer,"na rade je: %s\n",clients[getPoradie()]->meno);
-                                    printf("na rade je: %s\n",clients[getPoradie()]->meno);
-                                    send_massage_toAll(buffer);
+
+                                    if (getPoradie() != -1) {
+                                        sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
+                                        printf("na rade je: %s\n", clients[getPoradie()]->meno);
+                                        send_massage_toAll(buffer);
+                                    }
                                     hod = 0;
+                                    sest = 0;
                                 }
                             } else if (hod % 6 == 0) {
                                 hod += hodKockou();
-                                sest++;
+                                if (hod % 6 == 0) {
+                                    sest++;
+                                }
                                 sprintf(buffer,"%s: hadzal si znovu a mas: %d z toho %d sestky\n",client->meno, hod,sest);
                                 printf("%s: padlo cislo: %d\n",client->meno, hod);
                                 send_massage_toAll(buffer);
@@ -205,23 +284,22 @@ void *handle_client(void *arg) {
                                     printf("**%s", prikaz);
                                     send_massage_toAll(prikaz);
 
-                                    sprintf(buffer, "Hrac: %s si postavl noveho panacika\n",
-                                            clients[getPoradie()]->meno);
-                                    printf("Hrac: %s si postavl noveho panacika\n", clients[getPoradie()]->meno);
+                                    sprintf(buffer, "Hrac: %s si postavl noveho panacika\n",client->meno);
+                                    printf("Hrac: %s si postavl noveho panacika\n", client->meno);
                                     send_massage_toAll(buffer);
                                     sest = sest - 1;
-                                    printf("%s: spotreboval si 6 mas ich %d", clients[getPoradie()]->meno, sest);
+                                    printf("%s: spotreboval si 6 mas ich %d", client->meno, sest);
                                     hod -= 6;
-                                    printf("Hrac: %s zostalo %d na pohnutie\n", clients[getPoradie()]->meno, hod);
-                                    sprintf(buffer, "Hrac: %s zostava na pohnutie %d\n", clients[getPoradie()]->meno,hod);
-                                    send_massage_toMe(buffer, client[getPoradie()].uid);
+                                    printf("Hrac: %s zostalo %d na pohnutie\n", client->meno, hod);
+                                    sprintf(buffer, "Hrac: %s zostava na pohnutie %d\n", client->meno,hod);
+                                    send_massage_toMe(buffer, client->uid);
                                 } else {
-                                    printf("Hrac: %s si nemohol postavit noveho panacika\n",clients[getPoradie()]->meno);
+                                    printf("Hrac: %s si nemohol postavit noveho panacika\n",client->meno);
                                     sprintf(buffer,"Nemozes si postavit noveho panacika\n");
                                     send_massage_toMe(buffer,client->uid);
                                 }
                             } else {
-                                printf("Hrac: %s si nemohol postavit noveho panacika\n",clients[getPoradie()]->meno);
+                                printf("Hrac: %s si nemohol postavit noveho panacika\n",client->meno);
                                 sprintf(buffer,"Nemozes si postavit noveho panacika\n");
                                 send_massage_toMe(buffer,client->uid);
                             }
@@ -235,29 +313,98 @@ void *handle_client(void *arg) {
                                     printf("**%s", prikaz);
                                     send_massage_toAll(prikaz);
 
-                                    sprintf(buffer, "Hrac: %s sa posunul panacikom cislo 1\n",
-                                            clients[getPoradie()]->meno);
-                                    printf("Hrac: %s sa posunul panacikom cislo 1\n", clients[getPoradie()]->meno);
+                                    sprintf(buffer, "Hrac: %s sa posunul panacikom cislo 1\n",client->meno);
+                                    printf("Hrac: %s sa posunul panacikom cislo 1\n", client->meno);
                                     send_massage_toAll(buffer);
                                     hod = 0;
+                                    sest = 0;
                                     if (skontrolujCiVyhral(client->uid) == 1) {
-                                        printf("Hrac: %s vyhral\n", clients[getPoradie()]->meno);
+                                        printf("Hrac: %s vyhral\n", client->meno);
+                                        sprintf(buffer, "Hrac: %s vyhral\n", client->meno);
+                                        send_massage_toAll(buffer);
+                                        clients[getPoradie()]->vyhral = 1;
+                                        client->vyhral = 1;
                                     }
-                                    if (getPoradie() == 3) {
+                                    if (getPoradie() == 3 && clients[0]->vyhral == 0) {
                                         nastavPoradie(0);
+                                    } else if (getPoradie() == 3 && clients[1]->vyhral == 0) {
+                                        nastavPoradie(1);
+                                    } else if (getPoradie() == 3 && clients[2]->vyhral == 0) {
+                                        nastavPoradie(2);
+                                    } else if (getPoradie() == 3 && clients[getPoradie()]->vyhral == 0) {
+                                        nastavPoradie(getPoradie());
                                     } else {
-                                        nastavPoradie(getPoradie() + 1);
+                                        if (getPoradie() == 3) {
+                                            printf("Hraci ukoncili hru!!!\n");
+                                            sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                            send_massage_toAll(buffer);
+                                            nastavPoradie(-1);
+                                        } else {
+                                            if (getPoradie() == 0 && clients[getPoradie() +1]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 1);
+                                            } else if (getPoradie() == 0 && clients[getPoradie() + 2]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 2);
+                                            } else if (getPoradie() == 0 && clients[getPoradie() + 3]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 3);
+                                            } else if (getPoradie() == 0 && clients[getPoradie()]->vyhral == 0) {
+                                                nastavPoradie(getPoradie());
+                                            } else {
+                                                if (getPoradie() == 0) {
+                                                    printf("Hraci ukoncili hru!!!\n");
+                                                    sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                    send_massage_toAll(buffer);
+                                                    nastavPoradie(-1);
+                                                } else {
+                                                    if (getPoradie() == 1 && clients[getPoradie() + 1]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie() + 1);
+                                                    } else if (getPoradie() == 1 && clients[getPoradie() + 2]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie() + 2);
+                                                    } else if (getPoradie() == 1 && clients[0]->vyhral == 0) {
+                                                        nastavPoradie(0);
+                                                    } else if (getPoradie() == 1 && clients[getPoradie()]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie());
+                                                    } else {
+                                                        if (getPoradie() == 1) {
+                                                            printf("Hraci ukoncili hru!!!\n");
+                                                            sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                            send_massage_toAll(buffer);
+                                                            nastavPoradie(-1);
+                                                        } else {
+                                                            if (getPoradie() == 2 && clients[getPoradie() + 1]->vyhral == 0) {
+                                                                nastavPoradie(getPoradie() + 1);
+                                                            } else if (getPoradie() == 2 && clients[0]->vyhral == 0) {
+                                                                nastavPoradie(0);
+                                                            } else if (getPoradie() == 2 && clients[1]->vyhral == 0) {
+                                                                nastavPoradie(1);
+                                                            } else if (getPoradie() == 2 && clients[getPoradie()]->vyhral == 0) {
+                                                                nastavPoradie(getPoradie());
+                                                            } else {
+                                                                if (getPoradie() == 2) {
+                                                                    printf("Hraci ukoncili hru!!!\n");
+                                                                    sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                                    send_massage_toAll(buffer);
+                                                                    nastavPoradie(-1);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
-                                    sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
-                                    printf("na rade je: %s\n", clients[getPoradie()]->meno);
-                                    send_massage_toAll(buffer);
+
+                                    if (getPoradie() != -1) {
+                                        sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
+                                        printf("na rade je: %s\n", clients[getPoradie()]->meno);
+                                        send_massage_toAll(buffer);
+                                    }
                                 } else {
-                                    printf("Hrac: %s sa nemohol posunut panacikom cislo 4\n", clients[getPoradie()]->meno);
-                                    sprintf(buffer, "Nemozes sa posunut panacikom cislo 4\n");
+                                    printf("Hrac: %s sa nemohol posunut panacikom cislo 1\n", client->meno);
+                                    sprintf(buffer, "Nemozes sa posunut panacikom cislo 1\n");
                                     send_massage_toMe(buffer, client->uid);
                                 }
                             } else {
-                                printf("Hrac: %s sa nemohol posunut panacikom cislo 1\n",clients[getPoradie()]->meno);
+                                printf("Hrac: %s sa nemohol posunut panacikom cislo 1\n",client->meno);
                                 sprintf(buffer,"Nemozes sa posunut panacikom cislo 1\n");
                                 send_massage_toMe(buffer,client->uid);
                             }
@@ -271,29 +418,98 @@ void *handle_client(void *arg) {
                                     printf("**%s", prikaz);
                                     send_massage_toAll(prikaz);
 
-                                    sprintf(buffer, "Hrac: %s sa posunul panacikom cislo 2\n",
-                                            clients[getPoradie()]->meno);
-                                    printf("Hrac: %s sa posunul panacikom cislo 2\n", clients[getPoradie()]->meno);
+                                    sprintf(buffer, "Hrac: %s sa posunul panacikom cislo 2\n", client->meno);
+                                    printf("Hrac: %s sa posunul panacikom cislo 2\n", client->meno);
                                     send_massage_toAll(buffer);
                                     hod = 0;
+                                    sest = 0;
                                     if (skontrolujCiVyhral(client->uid) == 1) {
-                                        printf("Hrac: %s vyhral\n", clients[getPoradie()]->meno);
+                                        printf("Hrac: %s vyhral\n", client->meno);
+                                        sprintf(buffer, "Hrac: %s vyhral\n", client->meno);
+                                        send_massage_toAll(buffer);
+                                        clients[getPoradie()]->vyhral = 1;
+                                        client->vyhral = 1;
                                     }
-                                    if (getPoradie() == 3) {
+                                    if (getPoradie() == 3 && clients[0]->vyhral == 0) {
                                         nastavPoradie(0);
+                                    } else if (getPoradie() == 3 && clients[1]->vyhral == 0) {
+                                        nastavPoradie(1);
+                                    } else if (getPoradie() == 3 && clients[2]->vyhral == 0) {
+                                        nastavPoradie(2);
+                                    } else if (getPoradie() == 3 && clients[getPoradie()]->vyhral == 0) {
+                                        nastavPoradie(getPoradie());
                                     } else {
-                                        nastavPoradie(getPoradie() + 1);
+                                        if (getPoradie() == 3) {
+                                            printf("Hraci ukoncili hru!!!\n");
+                                            sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                            send_massage_toAll(buffer);
+                                            nastavPoradie(-1);
+                                        } else {
+                                            if (getPoradie() == 0 && clients[getPoradie() +1]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 1);
+                                            } else if (getPoradie() == 0 && clients[getPoradie() + 2]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 2);
+                                            } else if (getPoradie() == 0 && clients[getPoradie() + 3]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 3);
+                                            } else if (getPoradie() == 0 && clients[getPoradie()]->vyhral == 0) {
+                                                nastavPoradie(getPoradie());
+                                            } else {
+                                                if (getPoradie() == 0) {
+                                                    printf("Hraci ukoncili hru!!!\n");
+                                                    sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                    send_massage_toAll(buffer);
+                                                    nastavPoradie(-1);
+                                                } else {
+                                                    if (getPoradie() == 1 && clients[getPoradie() + 1]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie() + 1);
+                                                    } else if (getPoradie() == 1 && clients[getPoradie() + 2]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie() + 2);
+                                                    } else if (getPoradie() == 1 && clients[0]->vyhral == 0) {
+                                                        nastavPoradie(0);
+                                                    } else if (getPoradie() == 1 && clients[getPoradie()]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie());
+                                                    } else {
+                                                        if (getPoradie() == 1) {
+                                                            printf("Hraci ukoncili hru!!!\n");
+                                                            sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                            send_massage_toAll(buffer);
+                                                            nastavPoradie(-1);
+                                                        } else {
+                                                            if (getPoradie() == 2 && clients[getPoradie() + 1]->vyhral == 0) {
+                                                                nastavPoradie(getPoradie() + 1);
+                                                            } else if (getPoradie() == 2 && clients[0]->vyhral == 0) {
+                                                                nastavPoradie(0);
+                                                            } else if (getPoradie() == 2 && clients[1]->vyhral == 0) {
+                                                                nastavPoradie(1);
+                                                            } else if (getPoradie() == 2 && clients[getPoradie()]->vyhral == 0) {
+                                                                nastavPoradie(getPoradie());
+                                                            } else {
+                                                                if (getPoradie() == 2) {
+                                                                    printf("Hraci ukoncili hru!!!\n");
+                                                                    sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                                    send_massage_toAll(buffer);
+                                                                    nastavPoradie(-1);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
-                                    sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
-                                    printf("na rade je: %s\n", clients[getPoradie()]->meno);
-                                    send_massage_toAll(buffer);
+
+                                    if (getPoradie() != -1) {
+                                        sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
+                                        printf("na rade je: %s\n", clients[getPoradie()]->meno);
+                                        send_massage_toAll(buffer);
+                                    }
                                 } else {
-                                    printf("Hrac: %s sa nemohol posunut panacikom cislo 4\n", clients[getPoradie()]->meno);
-                                    sprintf(buffer, "Nemozes sa posunut panacikom cislo 4\n");
+                                    printf("Hrac: %s sa nemohol posunut panacikom cislo 2\n", client->meno);
+                                    sprintf(buffer, "Nemozes sa posunut panacikom cislo 2\n");
                                     send_massage_toMe(buffer, client->uid);
                                 }
                             } else {
-                                printf("Hrac: %s sa nemohol posunut panacikom cislo 2\n",clients[getPoradie()]->meno);
+                                printf("Hrac: %s sa nemohol posunut panacikom cislo 2\n",client->meno);
                                 sprintf(buffer,"Nemozes sa posunut panacikom cislo 2\n");
                                 send_massage_toMe(buffer,client->uid);
                             }
@@ -307,29 +523,98 @@ void *handle_client(void *arg) {
                                     printf("**%s", prikaz);
                                     send_massage_toAll(prikaz);
 
-                                    sprintf(buffer, "Hrac: %s sa posunul panacikom cislo 3\n",
-                                            clients[getPoradie()]->meno);
-                                    printf("Hrac: %s sa posunul panacikom cislo 3\n", clients[getPoradie()]->meno);
+                                    sprintf(buffer, "Hrac: %s sa posunul panacikom cislo 2\n", client->meno);
+                                    printf("Hrac: %s sa posunul panacikom cislo 2\n", client->meno);
                                     send_massage_toAll(buffer);
                                     hod = 0;
+                                    sest = 0;
                                     if (skontrolujCiVyhral(client->uid) == 1) {
-                                        printf("Hrac: %s vyhral\n", clients[getPoradie()]->meno);
+                                        printf("Hrac: %s vyhral\n", client->meno);
+                                        sprintf(buffer, "Hrac: %s vyhral\n", client->meno);
+                                        send_massage_toAll(buffer);
+                                        clients[getPoradie()]->vyhral = 1;
+                                        client->vyhral = 1;
                                     }
-                                    if (getPoradie() == 3) {
+                                    if (getPoradie() == 3 && clients[0]->vyhral == 0) {
                                         nastavPoradie(0);
+                                    } else if (getPoradie() == 3 && clients[1]->vyhral == 0) {
+                                        nastavPoradie(1);
+                                    } else if (getPoradie() == 3 && clients[2]->vyhral == 0) {
+                                        nastavPoradie(2);
+                                    } else if (getPoradie() == 3 && clients[getPoradie()]->vyhral == 0) {
+                                        nastavPoradie(getPoradie());
                                     } else {
-                                        nastavPoradie(getPoradie() + 1);
+                                        if (getPoradie() == 3) {
+                                            printf("Hraci ukoncili hru!!!\n");
+                                            sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                            send_massage_toAll(buffer);
+                                            nastavPoradie(-1);
+                                        } else {
+                                            if (getPoradie() == 0 && clients[getPoradie() +1]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 1);
+                                            } else if (getPoradie() == 0 && clients[getPoradie() + 2]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 2);
+                                            } else if (getPoradie() == 0 && clients[getPoradie() + 3]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 3);
+                                            } else if (getPoradie() == 0 && clients[getPoradie()]->vyhral == 0) {
+                                                nastavPoradie(getPoradie());
+                                            } else {
+                                                if (getPoradie() == 0) {
+                                                    printf("Hraci ukoncili hru!!!\n");
+                                                    sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                    send_massage_toAll(buffer);
+                                                    nastavPoradie(-1);
+                                                } else {
+                                                    if (getPoradie() == 1 && clients[getPoradie() + 1]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie() + 1);
+                                                    } else if (getPoradie() == 1 && clients[getPoradie() + 2]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie() + 2);
+                                                    } else if (getPoradie() == 1 && clients[0]->vyhral == 0) {
+                                                        nastavPoradie(0);
+                                                    } else if (getPoradie() == 1 && clients[getPoradie()]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie());
+                                                    } else {
+                                                        if (getPoradie() == 1) {
+                                                            printf("Hraci ukoncili hru!!!\n");
+                                                            sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                            send_massage_toAll(buffer);
+                                                            nastavPoradie(-1);
+                                                        } else {
+                                                            if (getPoradie() == 2 && clients[getPoradie() + 1]->vyhral == 0) {
+                                                                nastavPoradie(getPoradie() + 1);
+                                                            } else if (getPoradie() == 2 && clients[0]->vyhral == 0) {
+                                                                nastavPoradie(0);
+                                                            } else if (getPoradie() == 2 && clients[1]->vyhral == 0) {
+                                                                nastavPoradie(1);
+                                                            } else if (getPoradie() == 2 && clients[getPoradie()]->vyhral == 0) {
+                                                                nastavPoradie(getPoradie());
+                                                            } else {
+                                                                if (getPoradie() == 2) {
+                                                                    printf("Hraci ukoncili hru!!!\n");
+                                                                    sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                                    send_massage_toAll(buffer);
+                                                                    nastavPoradie(-1);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
-                                    sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
-                                    printf("na rade je: %s\n", clients[getPoradie()]->meno);
-                                    send_massage_toAll(buffer);
+
+                                    if (getPoradie() != -1) {
+                                        sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
+                                        printf("na rade je: %s\n", clients[getPoradie()]->meno);
+                                        send_massage_toAll(buffer);
+                                    }
                                 } else {
-                                    printf("Hrac: %s sa nemohol posunut panacikom cislo 4\n", clients[getPoradie()]->meno);
-                                    sprintf(buffer, "Nemozes sa posunut panacikom cislo 4\n");
+                                    printf("Hrac: %s sa nemohol posunut panacikom cislo 3\n", client->meno);
+                                    sprintf(buffer, "Nemozes sa posunut panacikom cislo 3\n");
                                     send_massage_toMe(buffer, client->uid);
                                 }
                             } else {
-                                printf("Hrac: %s sa nemohol posunut panacikom cislo 3\n",clients[getPoradie()]->meno);
+                                printf("Hrac: %s sa nemohol posunut panacikom cislo 3\n",client->meno);
                                 sprintf(buffer,"Nemozes sa posunut panacikom cislo 3\n");
                                 send_massage_toMe(buffer,client->uid);
                             }
@@ -343,32 +628,134 @@ void *handle_client(void *arg) {
                                     printf("**%s", prikaz);
                                     send_massage_toAll(prikaz);
 
-                                    sprintf(buffer, "Hrac: %s sa posunul panacikom cislo 4\n",
-                                            clients[getPoradie()]->meno);
-                                    printf("Hrac: %s sa posunul panacikom cislo 4\n", clients[getPoradie()]->meno);
+                                    sprintf(buffer, "Hrac: %s sa posunul panacikom cislo 4\n", client->meno);
+                                    printf("Hrac: %s sa posunul panacikom cislo 4\n", client->meno);
                                     send_massage_toAll(buffer);
                                     hod = 0;
+                                    sest = 0;
                                     if (skontrolujCiVyhral(client->uid) == 1) {
-                                        printf("Hrac: %s vyhral\n", clients[getPoradie()]->meno);
+                                        printf("Hrac: %s vyhral\n", client->meno);
+                                        sprintf(buffer, "Hrac: %s vyhral\n", client->meno);
+                                        send_massage_toAll(buffer);
+                                        clients[getPoradie()]->vyhral = 1;
+                                        client->vyhral = 1;
                                     }
-                                    if (getPoradie() == 3) {
+                                    if (getPoradie() == 3 && clients[0]->vyhral == 0) {
                                         nastavPoradie(0);
+                                    } else if (getPoradie() == 3 && clients[1]->vyhral == 0) {
+                                        nastavPoradie(1);
+                                    } else if (getPoradie() == 3 && clients[2]->vyhral == 0) {
+                                        nastavPoradie(2);
+                                    } else if (getPoradie() == 3 && clients[getPoradie()]->vyhral == 0) {
+                                        nastavPoradie(getPoradie());
                                     } else {
-                                        nastavPoradie(getPoradie() + 1);
+                                        if (getPoradie() == 3) {
+                                            printf("Hraci ukoncili hru!!!\n");
+                                            sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                            send_massage_toAll(buffer);
+                                            nastavPoradie(-1);
+                                        } else {
+                                            if (getPoradie() == 0 && clients[getPoradie() +1]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 1);
+                                            } else if (getPoradie() == 0 && clients[getPoradie() + 2]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 2);
+                                            } else if (getPoradie() == 0 && clients[getPoradie() + 3]->vyhral == 0) {
+                                                nastavPoradie(getPoradie() + 3);
+                                            } else if (getPoradie() == 0 && clients[getPoradie()]->vyhral == 0) {
+                                                nastavPoradie(getPoradie());
+                                            } else {
+                                                if (getPoradie() == 0) {
+                                                    printf("Hraci ukoncili hru!!!\n");
+                                                    sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                    send_massage_toAll(buffer);
+                                                    nastavPoradie(-1);
+                                                } else {
+                                                    if (getPoradie() == 1 && clients[getPoradie() + 1]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie() + 1);
+                                                    } else if (getPoradie() == 1 && clients[getPoradie() + 2]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie() + 2);
+                                                    } else if (getPoradie() == 1 && clients[0]->vyhral == 0) {
+                                                        nastavPoradie(0);
+                                                    } else if (getPoradie() == 1 && clients[getPoradie()]->vyhral == 0) {
+                                                        nastavPoradie(getPoradie());
+                                                    } else {
+                                                        if (getPoradie() == 1) {
+                                                            printf("Hraci ukoncili hru!!!\n");
+                                                            sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                            send_massage_toAll(buffer);
+                                                            nastavPoradie(-1);
+                                                        } else {
+                                                            if (getPoradie() == 2 && clients[getPoradie() + 1]->vyhral == 0) {
+                                                                nastavPoradie(getPoradie() + 1);
+                                                            } else if (getPoradie() == 2 && clients[0]->vyhral == 0) {
+                                                                nastavPoradie(0);
+                                                            } else if (getPoradie() == 2 && clients[1]->vyhral == 0) {
+                                                                nastavPoradie(1);
+                                                            } else if (getPoradie() == 2 && clients[getPoradie()]->vyhral == 0) {
+                                                                nastavPoradie(getPoradie());
+                                                            } else {
+                                                                if (getPoradie() == 2) {
+                                                                    printf("Hraci ukoncili hru!!!\n");
+                                                                    sprintf(buffer, "Vsetci ste dostali svojich do domceku gratulujem!!! pomocou prikazu exit ukoncite program\n");
+                                                                    send_massage_toAll(buffer);
+                                                                    nastavPoradie(-1);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
-                                    sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
-                                    printf("na rade je: %s\n", clients[getPoradie()]->meno);
-                                    send_massage_toAll(buffer);
+
+                                    if (getPoradie() != -1) {
+                                        sprintf(buffer, "na rade je: %s\n", clients[getPoradie()]->meno);
+                                        printf("na rade je: %s\n", clients[getPoradie()]->meno);
+                                        send_massage_toAll(buffer);
+                                    }
                                 } else {
-                                    printf("Hrac: %s sa nemohol posunut panacikom cislo 4\n", clients[getPoradie()]->meno);
+                                    printf("Hrac: %s sa nemohol posunut panacikom cislo 4\n", client->meno);
                                     sprintf(buffer, "Nemozes sa posunut panacikom cislo 4\n");
                                     send_massage_toMe(buffer, client->uid);
                                 }
                             } else {
-                                printf("Hrac: %s sa nemohol posunut panacikom cislo 4\n", clients[getPoradie()]->meno);
+                                printf("Hrac: %s sa nemohol posunut panacikom cislo 4\n", client->meno);
                                 sprintf(buffer, "Nemozes sa posunut panacikom cislo 4\n");
                                 send_massage_toMe(buffer, client->uid);
                             }
+                        }
+                        //testovacie prikazy
+                        if ((strcmp(prikaz, "-dhod6") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
+                            hod += 6;
+                            sest += 1;
+                        }
+
+                        if ((strcmp(prikaz, "-dhod5") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
+                            hod += 5;
+                        }
+
+                        if ((strcmp(prikaz, "-dhod4") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
+                            hod += 4;
+                        }
+
+                        if ((strcmp(prikaz, "-dhod3") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
+                            hod += 3;
+                        }
+
+                        if ((strcmp(prikaz, "-dhod2") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
+                            hod += 2;
+                        }
+
+                        if ((strcmp(prikaz, "-dhod1") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
+                            hod += 1;
+                        }
+
+                        if ((strcmp(prikaz, "-dvyhr") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
+                            hod += 40;
+                        }
+
+                        if ((strcmp(prikaz, "-dhode") == 0) && jeTuEsteNiekto == MAX_CLEINTS ) {
+                            hod += 39;
                         }
 
                         if ((strcmp(prikaz, "-dvykr") == 0) && jeTuEsteNiekto == MAX_CLEINTS) {
@@ -464,6 +851,7 @@ int main(int argc, char** argv) {
         client->address = clientAddress;
         client->clientSock = clientSocket;
         client->uid = uid++;
+        client->vyhral = 0;
 
         queue_add(client);
         pthread_create(&tid, NULL, &handle_client, (void *)client);
@@ -482,6 +870,9 @@ int main(int argc, char** argv) {
         pridajHraca(clients[i]->uid,clients[i]->meno);
     }
     printf("Hráči boli pridaný\n");
+    nastavPoradie(0);
+    sprintf(message,"Na rade je :%s\n", clients[getPoradie()]->meno);
+    send_massage_toAll(message);
     if (clientSocket < 0) {
         printError("Chyba - accept.");
     }
