@@ -20,6 +20,7 @@ int jeTuEsteNiekto = 0;
 int serverSocket;
 int hod = 0;
 int sest = 0;
+int pocetKlientov = 1;
 
 typedef struct {
     struct sockaddr_in address;
@@ -747,10 +748,15 @@ void *handle_client(void *arg) {
                     }
                 }
             }
-        } else if (receive == 0 || strcmp(buffer, "exit") == 0) {
+        } else if (receive == 0 && pocetKlientov == 5 || strcmp(buffer, "exit") == 0) {
             sprintf(buffer, "%s sa odpojil\n", client->meno);
             printf("%s", buffer);
             send_massage(buffer, client->uid);
+            leave_flag = 1;
+        } else if (receive == 0 || strcmp(buffer, "exit") == 0 ) {
+            sprintf(buffer, "%s sa odpojil \n", client->meno);
+            printf("%s", buffer);
+            send_massage_toAll(buffer);
             leave_flag = 1;
         } else {
             printf("ERROR: -1\n");
@@ -771,6 +777,7 @@ void *handle_client(void *arg) {
     cli_count--;
     pthread_detach(pthread_self());
     jeTuEsteNiekto--;
+    pocetKlientov--;
     return NULL;
 }
 
@@ -806,9 +813,7 @@ int main(int argc, char** argv) {
     printf("Server bol spusteny.\n");
 
     //server caka na pripojenie klienta <sys/socket.h>
-    int koniec = 0;
     int clientSocket = 0;
-    int pocetKlientov = 1;
     char message[BUFFER_SZ] = {};
     while (pocetKlientov  <= MAX_CLEINTS ) {
         struct sockaddr_in clientAddress;
@@ -818,7 +823,12 @@ int main(int argc, char** argv) {
         client_t *client = (client_t *) malloc(sizeof(client_t));
         client->address = clientAddress;
         client->clientSock = clientSocket;
-        client->uid = uid++;
+        for (int i = 0; i < MAX_CLEINTS; ++i) {
+            if (!clients[i]) {
+                client->uid = i;
+                break;
+            }
+        }
         client->vyhral = 0;
 
         queue_add(client);
@@ -841,6 +851,7 @@ int main(int argc, char** argv) {
     nastavPoradie(0);
     sprintf(message,"Na rade je :%s\n", clients[getPoradie()]->meno);
     send_massage_toAll(message);
+    //printf("Na rade je :%s\n", clients[getPoradie()]->meno);
     if (clientSocket < 0) {
         printError("Chyba - accept.");
     }

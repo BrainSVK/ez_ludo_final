@@ -37,7 +37,7 @@ void recv_msg_handler() {
             if (strcmp(prikaz, "odpojil") == 0) {
                 printf("Jeden z uzivatelov sa odpojil Hra bohuzial konci!!\n");
                 koniec = 1;
-                flag =1;
+                flag = 1;
             }
             //printf("%s",prikaz);
             str_overwrite_stdout();
